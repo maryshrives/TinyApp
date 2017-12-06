@@ -9,5 +9,9 @@
   <p>
     <%= urls[shortURL] %> - <%= shortURL%>
   </p>
+    <form method="POST" action="/urls/<%= shortURL %>/update">
+    <input id="longUrl" type="text" name="longUrl" placeholder="<%= urls[shortURL] %>" style="width: 300px">
+    <input type="submit" value="Update">
+    </form>
 </body>
 </html>
