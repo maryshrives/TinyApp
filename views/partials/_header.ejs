@@ -1,16 +1,18 @@
 <header><h1 style="color:steelblue">TinyApp, a URL shortener</h1>
-  <% if ( username === undefined ) { %>
-      Login:
-    <form method='POST' action='/login'>
-      <input type='text' name='username'>
-      <button>Submit</button>
-    </form>
-  <% } else { %>
-  <%= username %><span> is now logged in</span>
+  <% if ( locals.user ) { %>
+
+
+    <%= user.id %><span> is now logged in</span>
+    <p>Hello, <%= user.email %></p>
     <form name="logout" method="POST" action="/logout">
       <button class="btn btn-primary btn-sm">Logout</button>
     </form>
 
+
+  <% } else { %>
+
+    <a href="/register"><button>Register</button></a>
+    <a href="/login"><button>Login</button></a>
 
   <% } %>
 </header>
