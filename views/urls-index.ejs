@@ -17,7 +17,7 @@
         <form method="POST" action="/urls/<%= urlKey %>/delete">
           <tr>
             <td><%= urlKey %></td>
-            <td> <%= urls[urlKey]%> </td>
+            <td> <%= urls[urlKey].longURL%> </td>
             <td><a href="/urls/<%= urlKey %>">Edit</a>
             <td><input type="submit" value="delete"></td>
           </tr>
