@@ -100,8 +100,8 @@ app.post("/login", (req, res) => {
     res.status(403).send("please enter email and password");
   }
 
-  console.log("email", email, "password", password);
-  console.log("users", users);
+  // console.log("email", email, "password", password);
+  // console.log("users", users);
 
 //error handling - verify password
   for (let user in users) {
@@ -158,7 +158,7 @@ app.get("/urls/:id", (req, res) => {
   let shortURL = req.params.id;
   var url = urlDatabase[shortURL];
   if (req.cookies["user_id"] && url.userID === req.cookies["user_id"]) {
-    urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.cookies["user_id"] };
+    // urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.cookies["user_id"] };
     let templateVars = { shortURL: req.params.id,
                         urls: urlDatabase,
                         user: users[req.cookies["user_id"]] };
@@ -166,8 +166,6 @@ app.get("/urls/:id", (req, res) => {
   } else {
     res.status(401).send("You are not authorized to delete this URL.");
   }
-
-
 });
 
 app.post("/urls", (req, res) => {
@@ -192,7 +190,7 @@ app.post("/urls/:id/delete", (req, res) => {
   let deleteID = req.params.id;
   delete urlDatabase[deleteID];
   console.log("URL has been deleted");
-  res.redirect("/urls");
+//  res.redirect("/urls");
 });
 
 app.post("/urls/:id/update", (req, res) => {

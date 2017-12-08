@@ -7,7 +7,7 @@
 <header><% include partials/_header %></header>
     <!-- Add your EJS code here -->
   <p>
-    <%= urls[shortURL].longURL %> - <%= shortURL%>
+   Short URL: <%= shortURL%>
   </p>
     <form method="POST" action="/urls/<%= shortURL %>/update">
     <input id="longURL" type="text" name="longURL" placeholder="<%= urls[shortURL].longURL %>" style="width: 300px">
