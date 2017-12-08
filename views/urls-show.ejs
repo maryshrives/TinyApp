@@ -10,7 +10,7 @@
    Short URL: <%= shortURL%>
   </p>
     <form method="POST" action="/urls/<%= shortURL %>/update">
-    <input id="longURL" type="text" name="longURL" placeholder="<%= urls[shortURL].longURL %>" style="width: 300px">
+    <input id="longURL" type="text" name="longURL" value="<%= urls[shortURL].longURL %>" style="width: 300px">
     <input type="submit" value="Update">
     </form>
 </body>

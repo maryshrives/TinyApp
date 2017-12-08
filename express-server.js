@@ -39,6 +39,9 @@ const users = {
     password: bcrypt.hashSync("green", 10)
   }
 }
+app.get("/", (req, res) => {
+  res.end("Hello!");
+});
 //get register endpoint
 app.get("/register", (req, res) => {
   res.render("register");
@@ -65,7 +68,6 @@ app.post("/register", (req, res) => {
     password: bcrypt.hashSync(password, 10)
   };
   req.session.user_id = id;
-//  res.session("user_id", id);
   res.redirect("/urls");
   console.log(users);
 });
@@ -77,22 +79,15 @@ app.get('/login', (req, res) => {
 app.post("/login", (req, res) => {
   let email = req.body["email"];
   let password = req.body["password"];
-  // res.cookie("user_id", req.body.user_id);
     if (email === "" || password === ""){
     res.status(403).send("please enter email and password");
   }
-
-  // console.log("email", email, "password", password);
-  // console.log("users", users);
-
 //error handling - verify password
   for (let user in users) {
     if (email === users[user].email){
       if (bcrypt.compareSync(password, users[user].password)){
         // set cookie to user
-
         req.session.user_id = user;
-//        res.session("user_id", user);
         res.redirect("/urls");
         return;
       } else {
@@ -101,7 +96,6 @@ app.post("/login", (req, res) => {
       }
     }
   };
-
   res.status(403).send("email doesn't exist, please register!");
 });
 //logout and clear cookie
@@ -123,7 +117,6 @@ app.get("/urls", (req, res) => {
 
     let templateVars = { urls: myURLs,
                          user: users[req.session["user_id"]] };
-                          // user: users["userID"], };
     res.render("urls-index", templateVars);
   } else {
     res.redirect("/login");
@@ -131,7 +124,6 @@ app.get("/urls", (req, res) => {
 });
 //only have access if logged in
 app.get("/urls/new", (req, res) => {
-
   let templateVars = { user: users[req.session["user_id"]] };
   if (req.session["user_id"])
     res.render("urls-new", templateVars);
@@ -143,13 +135,12 @@ app.get("/urls/:id", (req, res) => {
   let shortURL = req.params.id;
   var url = urlDatabase[shortURL];
   if (req.session["user_id"] && url.userID === req.session["user_id"]) {
-    // urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.cookies["user_id"] };
     let templateVars = { shortURL: req.params.id,
                         urls: urlDatabase,
                         user: users[req.session["user_id"]] };
     res.render("urls-show", templateVars);
   } else {
-    res.status(401).send("You are not authorized to delete this URL.");
+    res.status(401).send("You are not authorized to edit or delete this URL.");
   }
 });
 
@@ -161,7 +152,7 @@ app.post("/urls", (req, res) => {
   urlDatabase[randomURL] = { longURL: req.body.longURL, userID: req.session["user_id"] };
   res.redirect("/urls/");
 });
-
+//only logged in users can edit and delete their own urls
 app.post("/urls/:id/delete", (req, res) => {
   let shortURL = req.params.id;
   var url = urlDatabase[shortURL];
@@ -170,18 +161,16 @@ app.post("/urls/:id/delete", (req, res) => {
     urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.session["user_id"] };
     res.redirect("/urls");
   } else {
-    res.status(401).send("You are not authorized to delete this URL.");
+    res.status(401).send("You are not authorized to edit or delete this URL.");
   }
   let deleteID = req.params.id;
   delete urlDatabase[deleteID];
   console.log("URL has been deleted");
-//  res.redirect("/urls");
 });
 
 app.post("/urls/:id/update", (req, res) => {
   let shortURL = req.params.id;
   var url = urlDatabase[shortURL];
-
   if (req.session["user_id"] && url.userID === req.session["user_id"]) {
     urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.session["user_id"] };
     res.redirect("/urls");
@@ -193,7 +182,7 @@ app.post("/urls/:id/update", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
+//redirect to the longURL
 app.get("/u/:shortURL", (req, res) => {
   let longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
