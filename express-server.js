@@ -1,11 +1,12 @@
 const express = require("express");
 const app = express();
-const PORT = process.env.PORT || 8080; // default port 8080
+const PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcrypt");
+
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
-
 app.set("view engine", "ejs");
 
 function generateRandomString(n){
@@ -30,15 +31,14 @@ const users = {
   "userID": {
     id: "userID",
     email: "user@example.com",
-    password: "purple"
+    password: bcrypt.hashSync("purple", 10)
   },
  "user2ID": {
     id: "user2ID",
     email: "user2@example.com",
-    password: "green"
+    password: bcrypt.hashSync("green", 10)
   }
 }
-
 
 app.get("/", (req, res) => {
   res.end("Hello!");
@@ -57,7 +57,6 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-
   let email = req.body["email"];
   let password = req.body["password"];
   let id = generateRandomString(6);
@@ -75,15 +74,11 @@ app.post("/register", (req, res) => {
   users[id] = {
     id,
     email,
-    password
+    password: bcrypt.hashSync(password, 10)
   };
-
-
   res.cookie("user_id", id);
   res.redirect("/urls");
   console.log(users);
-
-
 });
 
 // app.get("/register", (req,res) => {
@@ -110,9 +105,8 @@ app.post("/login", (req, res) => {
 
 //error handling - verify password
   for (let user in users) {
-  // Object.keys(users).forEach(function(user) {
     if (email === users[user].email){
-      if (password === users[user].password){
+      if (bcrypt.compareSync(password, users[user].password)){
         // set cookie to user
         res.cookie("user_id", user);
         res.redirect("/urls");
@@ -126,7 +120,7 @@ app.post("/login", (req, res) => {
 
   res.status(403).send("email doesn't exist, please register!");
 });
-
+//logout and clear cookie
 app.post("/logout", (req, res) => {
   user_id = "";
   res.clearCookie("user_id");
@@ -149,10 +143,8 @@ app.get("/urls", (req, res) => {
   } else {
     res.redirect("/login");
   }
-
-
 });
-
+//only have access if logged in
 app.get("/urls/new", (req, res) => {
 
   let templateVars = { user: users[req.cookies["user_id"]] };
@@ -166,17 +158,16 @@ app.get("/urls/:id", (req, res) => {
   let shortURL = req.params.id;
   var url = urlDatabase[shortURL];
   if (req.cookies["user_id"] && url.userID === req.cookies["user_id"]) {
-    urlDatabase[shortURL] = { longURL: req.body.longUrl, userID: req.cookies["user_id"] };
-    res.redirect("/urls");
+    urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.cookies["user_id"] };
+    let templateVars = { shortURL: req.params.id,
+                        urls: urlDatabase,
+                        user: users[req.cookies["user_id"]] };
+    res.render("urls-show", templateVars);
   } else {
     res.status(401).send("You are not authorized to delete this URL.");
   }
 
-  let templateVars = { shortURL: req.params.id,
-                        urls: urlDatabase,
-                        user: users[req.cookies["user_id"]] };
-                        // user: users["userID"] };
-  res.render("urls-show", templateVars);
+
 });
 
 app.post("/urls", (req, res) => {
@@ -185,22 +176,19 @@ app.post("/urls", (req, res) => {
   }
   let randomURL = generateRandomString(6);
   urlDatabase[randomURL] = { longURL: req.body.longURL, userID: req.cookies["user_id"] };
-  // console.log("msg 1: " + urlDatabase);
-  // console.log("msg 2: " + req.body);
   res.redirect("/urls/");
 });
 
 app.post("/urls/:id/delete", (req, res) => {
   let shortURL = req.params.id;
-
   var url = urlDatabase[shortURL];
+
   if (req.cookies["user_id"] && url.userID === req.cookies["user_id"]) {
-    urlDatabase[shortURL] = { longURL: req.body.longUrl, userID: req.cookies["user_id"] };
+    urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.cookies["user_id"] };
     res.redirect("/urls");
   } else {
     res.status(401).send("You are not authorized to delete this URL.");
   }
-
   let deleteID = req.params.id;
   delete urlDatabase[deleteID];
   console.log("URL has been deleted");
@@ -212,7 +200,7 @@ app.post("/urls/:id/update", (req, res) => {
   var url = urlDatabase[shortURL];
 
   if (req.cookies["user_id"] && url.userID === req.cookies["user_id"]) {
-    urlDatabase[shortURL] = { longURL: req.body.longUrl, userID: req.cookies["user_id"] };
+    urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.cookies["user_id"] };
     res.redirect("/urls");
   } else {
     res.status(401).send("You are not authorized to edit this URL.");
@@ -224,18 +212,6 @@ app.listen(PORT, () => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  console.log("msg 4: " + urlDatabase)
   let longURL = urlDatabase[req.params.shortURL].longURL;
-  // console.log("msg 5: " + longURL);
   res.redirect(longURL);
 });
-
-
-
-
-
-
-
-
-
-
